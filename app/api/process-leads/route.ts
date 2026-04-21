@@ -61,8 +61,8 @@ export async function POST() {
         if (actioning.tier === 'hot') {
           await notifySlack({
             email: lead.email,
-            first_name: lead.first_name,
-            last_name: lead.last_name,
+            first_name: lead.first_name ?? undefined,
+            last_name: lead.last_name ?? undefined,
             company_name: enrichment.company_name ?? undefined,
             free_text: lead.free_text ?? undefined,
             tier: actioning.tier,
@@ -70,7 +70,7 @@ export async function POST() {
             sla_deadline: actioning.sla_deadline,
             geo_region: routing.geo_region ?? undefined,
             inquiry_type: lead.inquiry_type,
-            job_title: lead.job_title,
+            job_title: lead.job_title ?? undefined,
             is_global_2000: enrichment.is_global_2000 ?? undefined,
             competitor_tool_detected: enrichment.competitor_tool_detected ?? undefined,
             expected_spend: lead.expected_spend ?? undefined,
