@@ -231,7 +231,9 @@ export async function getLastRecalibrationDate(): Promise<string | null> {
 
 export async function isRecalibrationDue(): Promise<boolean> {
   const lastDate = await getLastRecalibrationDate()
-
-  // TODO: revert — temporarily always due for demo
-  return true
+  if (!lastDate) return true
+  const last = new Date(lastDate)
+  const now = new Date()
+  const diffDays = (now.getTime() - last.getTime()) / (1000 * 60 * 60 * 24)
+  return diffDays >= 90
 }

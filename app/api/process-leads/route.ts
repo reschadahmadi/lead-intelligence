@@ -6,6 +6,7 @@ import { runRouting } from '@/lib/pipeline/routing'
 import { runScoring } from '@/lib/pipeline/scoring'
 import { runMultipliers } from '@/lib/pipeline/multipliers'
 import { runActioning, writeRejection } from '@/lib/pipeline/actioning'
+import { notifySlack } from '@/lib/pipeline/slack'
 import type { ProcessingSummary } from '@/lib/pipeline/types'
 
 export async function POST() {
@@ -55,6 +56,28 @@ export async function POST() {
 
         // Layer 5: Actioning (writes to Supabase)
         const actioning = await runActioning(lead, enrichment, routing, scoring, multipliers)
+
+        // Slack notification for Accelerate leads
+        if (actioning.tier === 'hot') {
+          await notifySlack({
+            email: lead.email,
+            first_name: lead.first_name,
+            last_name: lead.last_name,
+            company_name: enrichment.company_name ?? undefined,
+            free_text: lead.free_text ?? undefined,
+            tier: actioning.tier,
+            final_score: actioning.final_score,
+            sla_deadline: actioning.sla_deadline,
+            geo_region: routing.geo_region ?? undefined,
+            inquiry_type: lead.inquiry_type,
+            job_title: lead.job_title,
+            is_global_2000: enrichment.is_global_2000 ?? undefined,
+            competitor_tool_detected: enrichment.competitor_tool_detected ?? undefined,
+            expected_spend: lead.expected_spend ?? undefined,
+            segment: routing.segment ?? undefined,
+            assigned_rep: routing.assigned_rep ?? undefined,
+          })
+        }
 
         summary.processed++
         if (actioning.tier === 'hot') summary.accelerate++
